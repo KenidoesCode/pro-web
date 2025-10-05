@@ -1,86 +1,106 @@
-import { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-
-function CubeWithNodes() {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.x += 0.005;
-      groupRef.current.rotation.y += 0.005;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Centered 3D Logo</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #003366 0%, #001a33 100%);
     }
-  });
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
-  const positions: [number, number, number][] = [
-    [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1],
-    [1, -1, -1], [1, -1, 1], [1, 1, -1], [1, 1, 1]
-  ];
+  <script>
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-  const edges: [number, number][] = [
-    [0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3],
-    [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]
-  ];
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 6);
 
-  return (
-    <group ref={groupRef}>
-      <mesh>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial
-          color="#22d3ee"
-          transparent
-          opacity={0.6}
-          metalness={0.5}
-          roughness={0.2}
-        />
-      </mesh>
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-      {positions.map((pos, idx) => (
-        <mesh key={idx} position={pos}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial
-            color="#06b6d4"
-            emissive="#06b6d4"
-            emissiveIntensity={0.5}
-          />
-        </mesh>
-      ))}
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x66ccff, 1.2);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0x00ffff, 1.5);
+    pointLight.position.set(3, 3, 5);
+    scene.add(pointLight);
 
-      {edges.map((edge, idx) => {
-        const start = new THREE.Vector3(...positions[edge[0]]);
-        const end = new THREE.Vector3(...positions[edge[1]]);
-        const points = [start, end];
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    // Controls (optional)
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
 
-        return (
-          <line key={idx} geometry={geometry}>
-            <lineBasicMaterial color="#22d3ee" linewidth={2} />
-          </line>
-        );
-      })}
-    </group>
-  );
-}
+    // Cube parameters (larger cube)
+    const cubeSize = 3; // increased from 2
+    const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+    const cubeMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00aaff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.4
+    });
+    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    scene.add(cube);
 
-interface Logo3DProps {
-  className?: string;
-  scale?: number;
-}
+    // Node spheres
+    const nodeGeometry = new THREE.SphereGeometry(0.12, 16, 16);
+    const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
-export default function Logo3D({ className = '', scale = 1 }: Logo3DProps) {
-  return (
-    <div className={className}>
-      <Canvas
-        camera={{ position: [3, 3, 5], fov: 50 }}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        <group scale={scale}>
-          <CubeWithNodes />
-        </group>
-      </Canvas>
-    </div>
-  );
-}
+    const positions = [
+      [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1],
+      [1, -1, -1], [1, -1, 1], [1, 1, -1], [1, 1, 1]
+    ];
+
+    positions.forEach(pos => {
+      const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+      node.position.set(pos[0] * 1.5, pos[1] * 1.5, pos[2] * 1.5);
+      scene.add(node);
+    });
+
+    // Edges
+    const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x00ccff });
+    const edges = [
+      [0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],
+      [4,5],[4,6],[5,7],[6,7]
+    ];
+
+    edges.forEach(pair => {
+      const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(...positions[pair[0]].map(p => p * 1.5)),
+        new THREE.Vector3(...positions[pair[1]].map(p => p * 1.5))
+      ]);
+      const line = new THREE.Line(geometry, edgeMaterial);
+      scene.add(line);
+    });
+
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.004;
+      cube.rotation.y += 0.004;
+      scene.rotation.y += 0.002;
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsive
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
