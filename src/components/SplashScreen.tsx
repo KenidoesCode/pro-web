@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Logo3D from './Logo3D';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -10,15 +11,15 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
     const blastTimer = setTimeout(() => {
       setPhase('blast');
-    }, 500);
+    }, 300);
 
     const fadeTimer = setTimeout(() => {
       setPhase('fadeOut');
-    }, 2500);
+    }, 1500);
 
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 3500);
+    }, 2300);
 
     return () => {
       clearTimeout(blastTimer);
@@ -75,13 +76,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               phase === 'blast' ? 'opacity-100 animate-pulse-fast' : 'opacity-0'
             }`}></div>
 
-            <img
-              src="/quant.logo.jpg"
-              alt="QuantumBAY Logo"
-              className={`relative w-64 h-64 object-contain rounded-2xl shadow-2xl transition-all duration-500 ${
-                phase === 'blast' ? 'shadow-cyan-500/50 shadow-[0_0_80px_rgba(34,211,238,0.8)]' : ''
-              }`}
-            />
+            <div className="w-64 h-64 relative">
+              <Logo3D className="w-full h-full" scale={0.8} />
+            </div>
 
             {phase === 'blast' && (
               <>

@@ -17,6 +17,7 @@ import {
 import HorizontalScroll from './components/HorizontalScroll';
 import FloatingElements from './components/FloatingElements';
 import SplashScreen from './components/SplashScreen';
+import Logo3D from './components/Logo3D';
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -104,11 +105,9 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img
-                src="/quant.logo.jpg"
-                alt="QuantumBAY Logo"
-                className="w-10 h-10 object-contain rounded-lg"
-              />
+              <div className="w-10 h-10">
+                <Logo3D className="w-full h-full" scale={0.6} />
+              </div>
               <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 QuantumBAY
               </div>
